@@ -1,5 +1,5 @@
 [package]
-name = "TDH55/difftastic"
+name = "TDH55-difftastic"
 description = "A fork of difftastic, a structural diff that understands syntax. This fork allows you to select files/directories to exclude from your diff."
 repository = "https://github.com/tdh55/difftastic"
 homepage = "https://github.com/tdh55/difftastic"
