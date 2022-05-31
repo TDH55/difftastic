@@ -130,6 +130,7 @@ fn main() {
             rhs_path,
             lhs_display_path,
             rhs_display_path,
+            excluded,
         } => {
             let lhs_path = Path::new(&lhs_path);
             let rhs_path = Path::new(&rhs_path);
@@ -153,6 +154,7 @@ fn main() {
                     node_limit,
                     byte_limit,
                     language_override,
+                    excluded,
                 )
                 .for_each(|diff_result| {
                     print_diff_result(&display_options, &diff_result);
@@ -359,13 +361,14 @@ fn diff_directories<'a>(
     node_limit: u32,
     byte_limit: usize,
     language_override: Option<parse::guess_language::Language>,
+    excluded: Vec<String>,
 ) -> impl ParallelIterator<Item = DiffResult> + 'a {
     let display_options = display_options.clone();
 
     // We greedily list all files in the directory, and then diff them
     // in parallel. This is assuming that diffing is slower than
     // enumerating files, so it benefits more from parallelism.
-    let paths = relative_paths_in_either(lhs_dir, rhs_dir);
+    let paths = relative_paths_in_either(lhs_dir, rhs_dir, excluded);
 
     paths.into_par_iter().map(move |rel_path| {
         info!("Relative path is {:?} inside {:?}", rel_path, lhs_dir);
@@ -541,3 +544,4 @@ mod tests {
         assert_eq!(res.rhs_positions, vec![]);
     }
 }
+

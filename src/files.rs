@@ -111,7 +111,7 @@ fn relative_file_paths_in_dir(dir: &Path) -> Vec<PathBuf> {
 /// that occur in at least one directory.
 ///
 /// Attempts to preserve the ordering of files in both directories.
-pub fn relative_paths_in_either(lhs_dir: &Path, rhs_dir: &Path) -> Vec<PathBuf> {
+pub fn relative_paths_in_either(lhs_dir: &Path, rhs_dir: &Path, excluded: Vec<String>) -> Vec<PathBuf> {
     let lhs_paths = relative_file_paths_in_dir(lhs_dir);
     let rhs_paths = relative_file_paths_in_dir(rhs_dir);
 
@@ -127,8 +127,21 @@ pub fn relative_paths_in_either(lhs_dir: &Path, rhs_dir: &Path) -> Vec<PathBuf> 
                 if !seen.contains(lhs_path) {
                     // It should be impossible to get duplicates, but
                     // be defensive.
-                    res.push(lhs_path.clone());
-                    seen.insert(lhs_path);
+                    let mut exclude = false;
+
+                    for exclusion in &excluded {
+                        let path_parts: Vec<String> = lhs_path.to_str().unwrap().to_string().split("/").map(|s| s.to_string()).collect();
+
+                        if path_parts.iter().any(|part| part == exclusion) {
+                            exclude = true;
+                            continue;
+                        }
+                    }
+
+                    if !exclude {
+                        res.push(lhs_path.clone());
+                        seen.insert(lhs_path);
+                    }
                 }
 
                 i += 1;
@@ -175,3 +188,4 @@ mod tests {
         assert!(is_probably_binary(s.as_bytes()));
     }
 }
+

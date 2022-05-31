@@ -154,11 +154,21 @@ fn app() -> clap::Command<'static> {
                 .required(false),
         )
         .arg(
+            Arg::new("exclude").long("exclude")
+                .takes_value(true)
+                .value_name("PATHS")
+                .help("Exclude files and directories from the dif.")
+                .multiple_values(true)
+                .allow_invalid_utf8(true)
+                .required(false)
+        )
+        .arg(
             Arg::new("paths")
                 .value_name("PATHS")
                 .multiple_values(true)
                 .hide(true)
-                .allow_invalid_utf8(true),
+                .allow_invalid_utf8(true)
+                .last(true)
         )
         .arg_required_else_help(true)
 }
@@ -187,6 +197,8 @@ pub enum Mode {
         lhs_display_path: String,
         /// The path that we should display for the RHS file.
         rhs_display_path: String,
+        //A list of file/folder names to exclude
+        excluded: Vec<String>,
     },
     DumpTreeSitter {
         path: String,
@@ -232,6 +244,8 @@ pub fn parse_args() -> Mode {
     }
 
     let args: Vec<_> = matches.values_of_os("paths").unwrap_or_default().collect();
+    let excluded: Vec<_> = matches.values_of_os("exclude").unwrap_or_default().collect();
+    let excluded: Vec<_> = excluded.iter().map(|&s|s.to_str().to_owned().unwrap().to_string()).collect();
     info!("CLI arguments: {:?}", args);
 
     // TODO: document these different ways of calling difftastic.
@@ -368,6 +382,7 @@ pub fn parse_args() -> Mode {
         rhs_path: rhs_path.to_owned(),
         lhs_display_path: lhs_display_path.to_string_lossy().to_string(),
         rhs_display_path: rhs_display_path.to_string_lossy().to_string(),
+        excluded,
     }
 }
 
@@ -405,3 +420,4 @@ mod tests {
         assert!(detect_display_width() > 10);
     }
 }
+
